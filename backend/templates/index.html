@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Test - Supermarket App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            background: rgba(46, 213, 115, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #2ed573;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .info-section h3 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .endpoint {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.85em;
+        }
+
+        .get {
+            background: #3498db;
+        }
+
+        .post {
+            background: #2ecc71;
+        }
+
+        .patch {
+            background: #f39c12;
+        }
+
+        .delete {
+            background: #e74c3c;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .test-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .test-link {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .test-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+            transform: translateY(-2px);
+        }
+
+        .credentials {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #ffd700;
+        }
+
+        .credentials code {
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2ed573;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Backend Test Page</h1>
+
+        <div class="status">
+            <h2>{{ message }}</h2>
+            <p>Flask server is running successfully!</p>
+        </div>
+
+        <div class="info-section">
+            <h3>📡 Available API Endpoints</h3>
+
+            <h4 style="margin-top: 15px; color: #fff;">Authentication</h4>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/auth/register</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/auth/login</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/auth/me</span> (requires JWT)
+            </div>
+
+            <h4 style="margin-top: 15px; color: #fff;">Products</h4>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/products</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/products/:id</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/products/categories</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/products</span> (Admin only)
+            </div>
+            <div class="endpoint">
+                <span class="method patch">PATCH</span>
+                <span>/api/products/:id</span> (Admin only)
+            </div>
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span>/api/products/:id</span> (Admin only)
+            </div>
+
+            <h4 style="margin-top: 15px; color: #fff;">Orders</h4>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/orders</span> (requires JWT)
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/orders</span> (requires JWT)
+            </div>
+        </div>
+
+        <div class="credentials">
+            <h3>🔑 Test Credentials</h3>
+            <p><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></p>
+            <p><strong>User:</strong> <code>user</code> / <code>user123</code></p>
+        </div>
+
+        <div class="info-section">
+            <h3>✅ Next Steps</h3>
+            <ul>
+                <li>Test endpoints with Thunder Client (VS Code extension)</li>
+                <li>Connect frontend at <code>http://localhost:5173</code></li>
+                <li>Seed database if not done: <code>python seed.py</code></li>
+                <li>View products: <a href="/api/products" style="color: #ffd700;">/api/products</a></li>
+                <li>Check health: <a href="/api/health" style="color: #ffd700;">/api/health</a></li>
+            </ul>
+        </div>
+
+        <div class="test-links">
+            <a href="/api/health" class="test-link">
+                <div style="font-size: 2em;">🏥</div>
+                <div>Health Check</div>
+            </a>
+            <a href="/api/products" class="test-link">
+                <div style="font-size: 2em;">📦</div>
+                <div>View Products</div>
+            </a>
+            <a href="/api/products/categories" class="test-link">
+                <div style="font-size: 2em;">🏷️</div>
+                <div>Categories</div>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>
