@@ -198,7 +198,7 @@ supermarket-app/
 │   │   └── orders.py             # Order management
 │   │
 │   └── templates/                # Backend templates
-│       └── index.html            # Test template
+│       └── index.html            # Docs template
 │
 ├── frontend/
 │   ├── index.html                # HTML entry point
@@ -365,10 +365,10 @@ A Jinja2 template is included for quick backend verification:
 python backend/app.py
 
 # Visit in browser
-http://localhost:5000/test
+http://localhost:5000/docs
 ```
 
-You should see a simple page confirming the backend is running.
+You should see a docs page.
 
 ---
 
@@ -409,7 +409,7 @@ You should see a simple page confirming the backend is running.
 
 ### Recommended Development Flow
 
-1. ✅ Test backend with Jinja2 template (`/test` route)
+1. ✅ Docs with Jinja2 template (`/docs` route)
 2. ✅ Use test seeder for rapid development (`seed_test.py`)
 3. ✅ Develop API endpoints
 4. ✅ Build and connect frontend

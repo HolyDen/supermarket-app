@@ -23,10 +23,10 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(products_bp, url_prefix='/api/products')
 app.register_blueprint(orders_bp, url_prefix='/api/orders')
 
-# Test route with Jinja2
-@app.route('/test')
-def test_page():
-    return render_template('index.html', message='Backend is working! ✓')
+# Docs route with Jinja2
+@app.route('/docs')
+def docs_page():
+    return render_template('index.html')
 
 # Health check
 @app.route('/api/health')
