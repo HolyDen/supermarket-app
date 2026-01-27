@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { RootState } from '../redux/store';
@@ -15,7 +15,6 @@ export default function Home() {
   const { items, categories, loading, currentCategory, searchQuery } = useSelector(
     (state: RootState) => state.products
   );
-  const [localSearch, setLocalSearch] = useState('');
 
   useEffect(() => {
     fetchCategories();
@@ -46,10 +45,9 @@ export default function Home() {
   };
 
   const handleSearch = (query: string) => {
-    setLocalSearch(query);
     const timer = setTimeout(() => {
       dispatch(setProducts(
-        items.filter(p => 
+        items.filter(p =>
           p.name.toLowerCase().includes(query.toLowerCase()) ||
           p.description.toLowerCase().includes(query.toLowerCase())
         )
@@ -71,7 +69,7 @@ export default function Home() {
         <p className="text-gray-600 dark:text-gray-400 mb-8">
           Fresh products, great prices, delivered to your door
         </p>
-        
+
         <div className="flex justify-center mb-6">
           <SearchBar onSearch={handleSearch} />
         </div>

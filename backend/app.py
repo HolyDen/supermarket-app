@@ -8,7 +8,12 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # Initialize extensions
-CORS(app, origins=Config.CORS_ORIGINS)
+CORS(app, 
+     origins=Config.CORS_ORIGINS,
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+
 jwt = JWTManager(app)
 
 # Connect to MongoDB

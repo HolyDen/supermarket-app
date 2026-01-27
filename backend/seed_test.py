@@ -40,14 +40,14 @@ for data in products_data:
         description='Test product for development',
         price=data['price'],
         category=data['category'],
-        image_url='https://via.placeholder.com/300x300?text=' + data['name'].replace(' ', '+'),
+        image_url='https://placehold.co/300?text=' + data['name'].replace(' ', '+'),
         stock=data['stock']
     )
     product.save()
 
 print(f'✓ Created {len(products_data)} test products')
 print('')
-print('🎉 Test seeding complete!')
+print('DONE Test seeding complete!')
 print('Login credentials:')
 print('  Admin - username: admin, password: admin123')
 print('  User  - username: user, password: user123')

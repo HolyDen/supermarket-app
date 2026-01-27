@@ -52,7 +52,7 @@ export default function ProductDetail() {
       stock: product.stock,
     }));
 
-    showToast(`${quantity} ֳ— ${product.name} added to cart!`, 'success');
+    showToast(`${quantity} × ${product.name} added to cart!`, 'success');
   };
 
   if (loading) {

@@ -21,7 +21,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-3xl">נ›’</span>
+            <span className="text-3xl">🛒</span>
             <span className="text-xl font-bold text-gray-900 dark:text-white">
               Supermarket
             </span>

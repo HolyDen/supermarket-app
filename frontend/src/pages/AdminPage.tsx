@@ -228,7 +228,7 @@ export default function AdminPage() {
         {products.map((product) => (
           <div key={product.id} className="card flex items-center gap-6">
             <img
-              src={product.image_url || 'https://via.placeholder.com/100'}
+              src={product.image_url || 'https://placehold.co/100'}
               alt={product.name}
               className="w-24 h-24 object-cover rounded-lg"
             />
@@ -238,7 +238,7 @@ export default function AdminPage() {
                 {product.name}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {product.category} ג€¢ ${product.price.toFixed(2)} ג€¢ Stock: {product.stock}
+                {product.category} • ${product.price.toFixed(2)} • Stock: {product.stock}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500 line-clamp-1">
                 {product.description}

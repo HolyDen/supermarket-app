@@ -47,7 +47,7 @@ export default function OrdersPage() {
 
       {orders.length === 0 ? (
         <EmptyState
-          icon="נ“¦"
+          icon="📦"
           title="No orders yet"
           description="You haven't placed any orders yet. Start shopping to see your order history here!"
           action={

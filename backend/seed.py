@@ -17,13 +17,13 @@ print('Seeding full dataset...')
 admin = User(username='admin', email='admin@supermarket.com', is_admin=True)
 admin.set_password('admin123')
 admin.save()
-print('✅ Admin user created')
+print('✓ Admin user created')
 
 # Create regular user
 user = User(username='user', email='user@supermarket.com')
 user.set_password('user123')
 user.save()
-print('✅ Regular user created')
+print('✓ Regular user created')
 
 # Full product catalog with realistic images and prices
 products_data = [
@@ -106,9 +106,9 @@ for data in products_data:
     )
     product.save()
 
-print(f'✅ Created {len(products_data)} products')
+print(f'✓ Created {len(products_data)} products')
 print('')
-print('🎉 Full seeding complete!')
+print('DONE Full seeding complete!')
 print('')
 print('Login credentials:')
 print('  Admin - username: admin, password: admin123')

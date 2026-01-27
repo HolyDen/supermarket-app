@@ -44,7 +44,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <EmptyState
-        icon="נ›’"
+        icon="🛒"
         title="Your cart is empty"
         description="Start shopping and add some products to your cart!"
         action={
