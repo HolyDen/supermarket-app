@@ -43,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="card group hover:scale-105 transition-transform duration-200">
         <div className="relative overflow-hidden rounded-lg mb-4 h-48 bg-gray-100 dark:bg-gray-700">
           <img
-            src={product.image_url || 'https://via.placeholder.com/300x300?text=No+Image'}
+            src={product.image_url || 'https://placehold.co/300x300?text=No+Image'}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             loading="lazy"

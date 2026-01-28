@@ -52,7 +52,7 @@ export default function OrderHistory({ orders }: OrderHistoryProps) {
             {order.items.map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm">
                 <span className="text-gray-700 dark:text-gray-300">
-                  {item.product_name} ֳ— {item.quantity}
+                  {item.product_name} × {item.quantity}
                 </span>
                 <span className="text-gray-900 dark:text-white font-medium">
                   ${(item.price * item.quantity).toFixed(2)}

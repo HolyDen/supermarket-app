@@ -33,7 +33,7 @@ backend/.env
 frontend/.env
 
 # IDEs
-.vscode/
+# .vscode/
 .idea/
 *.swp
 *.swo

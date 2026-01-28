@@ -80,7 +80,7 @@ export default function ProductDetail() {
       <div className="grid md:grid-cols-2 gap-12">
         <div className="bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
           <img
-            src={product.image_url || 'https://via.placeholder.com/600'}
+            src={product.image_url || 'https://placehold.co/600'}
             alt={product.name}
             className="w-full h-full object-cover"
           />

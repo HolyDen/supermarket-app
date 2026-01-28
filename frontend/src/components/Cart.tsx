@@ -43,7 +43,7 @@ export default function Cart() {
           className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
         >
           <img
-            src={item.image_url || 'https://via.placeholder.com/80'}
+            src={item.image_url || 'https://placehold.co/80'}
             alt={item.product_name}
             className="w-20 h-20 object-cover rounded"
           />

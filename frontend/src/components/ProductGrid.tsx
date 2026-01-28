@@ -10,7 +10,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <EmptyState
-        icon='נ”'
+        icon='🔍'
         title='No products found'
         description='Try adjusting your search or filter criteria'
       />
