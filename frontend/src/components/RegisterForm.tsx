@@ -1,6 +1,8 @@
 ﻿import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../redux/authSlice';
 import { showToast } from './Toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -12,6 +14,7 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,14 +32,20 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/api/auth/register`, {
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
         username,
         email,
         password,
       });
 
+      // Auto-login with the returned token
+      dispatch(setCredentials({
+        user: response.data.user,
+        token: response.data.access_token,
+      }));
+
       showToast('Registration successful! Please login.', 'success');
-      navigate('/login');
+      navigate('/');
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Registration failed', 'error');
     } finally {

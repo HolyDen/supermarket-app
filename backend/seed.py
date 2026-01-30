@@ -33,7 +33,7 @@ products_data = [
     {'name': 'Roma Tomatoes', 'description': 'Fresh Roma tomatoes, perfect for cooking', 'price': 2.49, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400', 'stock': 80},
     {'name': 'Iceberg Lettuce', 'description': 'Crisp iceberg lettuce head', 'price': 1.79, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=400', 'stock': 60},
     {'name': 'Baby Carrots', 'description': '1 lb bag of fresh baby carrots', 'price': 1.99, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400', 'stock': 90},
-    {'name': 'Red Bell Peppers', 'description': 'Sweet red bell peppers', 'price': 3.99, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400', 'stock': 70},
+    {'name': 'Bell Peppers', 'description': 'Sweet bell peppers', 'price': 3.99, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400', 'stock': 70},
     {'name': 'Strawberries', 'description': 'Fresh strawberries, 1 lb container', 'price': 4.99, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400', 'stock': 50},
     {'name': 'Seedless Grapes', 'description': 'Green seedless grapes', 'price': 3.49, 'category': 'Fresh Produce', 'image_url': 'https://images.unsplash.com/photo-1599819177959-1f1bb4e9b8ac?w=400', 'stock': 65},
     
