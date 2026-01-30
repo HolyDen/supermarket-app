@@ -8,7 +8,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-47A248.svg)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
-[🚀 View Live Demo](https://your-app-name.onrender.com) • [📖 Documentation](#-api-endpoints) • [🐛 Report Bug](https://github.com/HolyDen/supermarket-app/issues)
+[🚀 View Live Demo](https://your-app-name.onrender.com) • [📖 API Documentation](#-api-endpoints) • [🐛 Report Bug](https://github.com/HolyDen/supermarket-app/issues)
 
 ---
 
@@ -58,6 +58,19 @@ Before you begin, ensure you have the following installed:
 - **Node.js** 18+ and npm
 - **Docker** and Docker Compose (latest)
 - **MongoDB** 6.0+ (if running locally without Docker)
+
+### 🛠️ Recommended VS Code Extensions
+
+This project works best with the following VS Code extension:
+
+- **Tailwind CSS IntelliSense** - Autocomplete and syntax highlighting for Tailwind
+
+When you open the project in VS Code, you'll be prompted to install recommended extensions.
+
+Alternatively, install manually:
+1. Open VS Code Extensions (`Ctrl+Shift+X`)
+2. Search for "Tailwind CSS IntelliSense"
+3. Click Install
 
 ---
 
@@ -188,52 +201,76 @@ supermarket-app/
 │   ├── seed.py                   # Full dataset seeder
 │   │
 │   ├── models/                   # Database models
+│   │   ├── __init__.py
 │   │   ├── user.py
 │   │   ├── product.py
 │   │   └── order.py
 │   │
 │   ├── routes/                   # API endpoints
+│   │   ├── __init__.py
 │   │   ├── auth.py               # Authentication routes
 │   │   ├── products.py           # Product CRUD
 │   │   └── orders.py             # Order management
 │   │
 │   └── templates/                # Backend templates
-│       └── index.html            # Docs template
+│       └── index.html            # API documentation page
 │
 ├── frontend/
 │   ├── index.html                # HTML entry point
 │   ├── package.json              # Node dependencies
 │   ├── tsconfig.json             # TypeScript config
+│   ├── tsconfig.node.json        # TypeScript config for Vite
 │   ├── vite.config.ts            # Vite configuration
+│   ├── tailwind.config.js        # Tailwind CSS config
+│   ├── postcss.config.js         # PostCSS config
 │   ├── Dockerfile                # Frontend container config
 │   ├── .env.example              # Environment variables template
 │   │
 │   └── src/
 │       ├── main.tsx              # React entry point
 │       ├── App.tsx               # Root component
+│       ├── index.css             # Global styles & Tailwind
+│       ├── vite-env.d.ts         # Vite environment types
 │       │
 │       ├── redux/                # State management
+│       │   ├── store.ts          # Redux store config
 │       │   ├── authSlice.ts      # Auth state
-│       │   ├── cartSlice.ts      # Cart state
+│       │   ├── cartSlice.ts      # Cart state (localStorage)
 │       │   ├── productsSlice.ts  # Products state
-│       │   └── store.ts          # Redux store config
+│       │   └── themeSlice.ts     # Dark/Light mode state
 │       │
 │       ├── components/           # Reusable components
+│       │   ├── Navbar.tsx
+│       │   ├── ProductCard.tsx
 │       │   ├── ProductGrid.tsx
 │       │   ├── Cart.tsx
 │       │   ├── LoginForm.tsx
 │       │   ├── RegisterForm.tsx
-│       │   └── OrderHistory.tsx
+│       │   ├── OrderHistory.tsx
+│       │   ├── SearchBar.tsx
+│       │   ├── CategoryFilter.tsx
+│       │   ├── ThemeToggle.tsx
+│       │   ├── Toast.tsx
+│       │   ├── LoadingSkeleton.tsx
+│       │   ├── EmptyState.tsx
+│       │   └── ConfirmModal.tsx
 │       │
 │       └── pages/                # Page components
 │           ├── Home.tsx
+│           ├── ProductDetail.tsx
 │           ├── CartPage.tsx
 │           ├── OrdersPage.tsx
 │           ├── LoginPage.tsx
-│           └── RegisterPage.tsx
+│           ├── RegisterPage.tsx
+│           ├── AdminPage.tsx
+│           └── NotFound.tsx
+|
+├── .vscode/                  # VS Code workspace settings
+│     └── extensions.json       # Recommended extensions
 │
 ├── docker-compose.yml            # Multi-container orchestration
 ├── .gitignore                    # Git ignore rules
+├── LICENSE                       # MIT License
 └── README.md                     # This file
 ```
 
@@ -289,6 +326,30 @@ The shopping cart is managed **client-side** using Redux. No API endpoints are r
 
 ---
 
+## 🔑 Default Login Credentials
+
+For testing and development purposes, the following accounts are created when seeding the database:
+
+### 👨‍💼 Admin Account
+```
+Username: admin
+Password: admin123
+Email: admin@supermarket.com
+```
+**Permissions:** Full product CRUD access + all user features
+
+### 👤 Test User Account
+```
+Username: user
+Password: user123
+Email: user@supermarket.com
+```
+**Permissions:** Shopping, cart management, order history
+
+⚠️ **Security Note:** These are development credentials only. Change or remove them in production environments.
+
+---
+
 ## 🌱 Database Seeding
 
 Two seeder scripts are provided:
@@ -311,6 +372,39 @@ python backend/seed.py
 - Ready for demo or production
 
 **🔍 Smart Seeding:** The seeder automatically checks if data exists and skips if the database is already populated.
+
+---
+
+## 🎨 Features Included
+
+### 🌓 Dark/Light Mode
+- Toggle between dark and light themes
+- Preference saved to localStorage
+- Smooth transitions between modes
+
+### 🔍 Search & Filter
+- Real-time product search
+- Category filtering
+- Pagination support
+
+### 📱 Responsive Design
+- Mobile-first approach
+- Works seamlessly on all devices
+- Touch-friendly interface
+
+### ✨ UI/UX Enhancements
+- Loading skeletons for better perceived performance
+- Toast notifications for user actions
+- Empty state designs (cart, orders)
+- Confirmation modals for destructive actions
+- Image lazy loading
+- Smooth animations and transitions
+
+### ♿ Accessibility
+- Keyboard navigation support
+- ARIA labels for screen readers
+- Semantic HTML structure
+- Focus states for interactive elements
 
 ---
 
@@ -368,7 +462,7 @@ python backend/app.py
 http://localhost:5000/docs
 ```
 
-You should see a docs page.
+You should see an API documentation page.
 
 ---
 
@@ -409,7 +503,7 @@ You should see a docs page.
 
 ### Recommended Development Flow
 
-1. ✅ Docs with Jinja2 template (`/docs` route)
+1. ✅ API docs with Jinja2 template (`/docs` route)
 2. ✅ Use test seeder for rapid development (`seed_test.py`)
 3. ✅ Develop API endpoints
 4. ✅ Build and connect frontend
@@ -441,63 +535,6 @@ npm run build
 - 🔐 Generate strong secrets for production using `python -c "import secrets; print(secrets.token_hex(32))"`
 - 🛡️ Admin routes are protected by JWT authentication
 - ⚠️ This is a learning project - additional security measures needed for production
-
----
-
-## 🔑 Default Login Credentials
-
-For testing and development purposes, the following accounts are created when seeding the database:
-
-### 👨‍💼 Admin Account
-```
-Username: admin
-Password: admin123
-Email: admin@supermarket.com
-```
-**Permissions:** Full product CRUD access + all user features
-
-### 👤 Test User Account
-```
-Username: user
-Password: user123
-Email: user@supermarket.com
-```
-**Permissions:** Shopping, cart management, order history
-
-⚠️ **Security Note:** These are development credentials only. Change or remove them in production environments.
-
----
-
-## 🎨 Features Included
-
-### 🌓 Dark/Light Mode
-- Toggle between dark and light themes
-- Preference saved to localStorage
-- Smooth transitions between modes
-
-### 🔍 Search & Filter
-- Real-time product search
-- Category filtering
-- Pagination support
-
-### 📱 Responsive Design
-- Mobile-first approach
-- Works seamlessly on all devices
-- Touch-friendly interface
-
-### ✨ UI/UX Enhancements
-- Loading skeletons for better perceived performance
-- Toast notifications for user actions
-- Empty state designs (cart, orders)
-- Confirmation modals for destructive actions
-- Image lazy loading
-- Smooth animations and transitions
-
-### ♿ Accessibility
-- Keyboard navigation support
-- ARIA labels for screen readers
-- Semantic HTML structure
-- Focus states for interactive elements
 
 ---
 
