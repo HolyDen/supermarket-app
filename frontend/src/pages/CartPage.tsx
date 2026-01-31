@@ -1,7 +1,7 @@
 ﻿import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
-import { clearUserCart, fetchCart } from '../redux/cartSlice';
+import { clearCart, fetchCart } from '../redux/cartSlice';
 import Cart from '../components/Cart';
 import EmptyState from '../components/EmptyState';
 import { showToast } from '../components/Toast';
@@ -20,18 +20,25 @@ export default function CartPage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const hasUnavailableItems = items.some(item => !item.is_available);
+  const hasStockIssues = items.some(item => item.has_stock_issue || item.stock === 0);
+  const canCheckout = !hasUnavailableItems && !hasStockIssues && items.length > 0;
 
   const handleCheckout = async () => {
-    if (!token) return;
+    if (!token || !canCheckout) return;
 
     setLoading(true);
     try {
       const orderItems = items
-        .filter(item => item.is_available) // Only include available items
+        .filter(item => item.is_available && !item.has_stock_issue && item.stock > 0)
         .map(item => ({
           product_id: item.product_id,
           quantity: item.quantity
         }));
+
+      if (orderItems.length === 0) {
+        showToast('No items available for checkout', 'error');
+        return;
+      }
 
       await axios.post(
         `${API_URL}/api/orders`,
@@ -56,7 +63,7 @@ export default function CartPage() {
     if (!token) return;
 
     try {
-      await dispatch(clearUserCart(token)).unwrap();
+      await dispatch(clearCart(token)).unwrap();
       showToast('Cart cleared', 'success');
       setShowClearConfirm(false);
     } catch (error) {
@@ -78,6 +85,13 @@ export default function CartPage() {
       />
     );
   }
+
+  const getCheckoutButtonText = () => {
+    if (loading) return 'Processing...';
+    if (hasUnavailableItems) return 'Remove unavailable items';
+    if (hasStockIssues) return 'Adjust quantities';
+    return 'Proceed to Checkout';
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -124,12 +138,22 @@ export default function CartPage() {
               </div>
             </div>
 
+            {/* Warning message if checkout is disabled */}
+            {!canCheckout && (
+              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-500 rounded text-sm">
+                <p className="text-yellow-800 dark:text-yellow-300">
+                  {hasUnavailableItems && '⚠️ Remove unavailable items to checkout'}
+                  {!hasUnavailableItems && hasStockIssues && '⚠️ Adjust quantities to match stock'}
+                </p>
+              </div>
+            )}
+
             <button
               onClick={handleCheckout}
-              disabled={loading || hasUnavailableItems}
+              disabled={loading || !canCheckout}
               className="w-full btn-primary text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : hasUnavailableItems ? 'Remove unavailable items first' : 'Proceed to Checkout'}
+              {getCheckoutButtonText()}
             </button>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
