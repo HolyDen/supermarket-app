@@ -120,7 +120,7 @@ export default function AdminPage() {
       stock: '',
     });
     setEditingProduct(null);
-    setShowCreateForm(false);
+    // Removed: setShowCreateForm(false); - This was causing the bug!
   };
 
   const ProductForm = () => (
@@ -207,7 +207,14 @@ export default function AdminPage() {
         <button type="submit" className="btn-primary">
           {editingProduct ? 'Update Product' : 'Create Product'}
         </button>
-        <button type="button" onClick={resetForm} className="btn-secondary">
+        <button
+          type="button"
+          onClick={() => {
+            resetForm();
+            setShowCreateForm(false);
+          }}
+          className="btn-secondary"
+        >
           Cancel
         </button>
       </div>
@@ -222,9 +229,11 @@ export default function AdminPage() {
         </h1>
         <button
           onClick={() => {
+            if (!showCreateForm) {
+              resetForm();
+            }
             setShowCreateForm(!showCreateForm);
             setEditingProduct(null);
-            resetForm();
           }}
           className="btn-primary"
         >

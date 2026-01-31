@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+﻿import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addItemToCart } from '../redux/cartSlice';
 import { RootState, AppDispatch } from '../redux/store';
@@ -11,6 +11,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
 
   // Get cart item at component level (not in handler)
@@ -49,6 +50,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     } catch (error: any) {
       showToast(error || 'Failed to add to cart', 'error');
     }
+  };
+
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/login');
   };
 
   return (
@@ -94,9 +101,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
             ) : (
-              <Link to="/login" className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+              <button
+                onClick={handleLoginClick}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              >
                 Login to Buy
-              </Link>
+              </button>
             )}
           </div>
 

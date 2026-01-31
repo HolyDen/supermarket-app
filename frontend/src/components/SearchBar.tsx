@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -8,10 +8,26 @@ interface SearchBarProps {
 export default function SearchBar({ onSearch, placeholder = 'Search products...' }: SearchBarProps) {
   const [query, setQuery] = useState('');
 
+  // Store the callback in a ref to avoid re-triggering the effect
+  const onSearchRef = useRef(onSearch);
+
+  // Update ref when callback changes
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  // Debounce the search - only depends on query, not onSearch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearchRef.current(query);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    onSearch(value);
   };
 
   return (

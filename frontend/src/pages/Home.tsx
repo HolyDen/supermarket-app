@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { RootState } from '../redux/store';
@@ -22,24 +22,34 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const PER_PAGE = 20;
 
+  // Fetch data only once on mount
   useEffect(() => {
     fetchCategories();
     fetchProducts();
-  }, [currentCategory]);
+  }, []);
 
+  // Filter products when search or category changes
   useEffect(() => {
-    // Filter products based on search
-    if (searchQuery.trim()) {
-      const filtered = allProducts.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setDisplayProducts(filtered);
-    } else {
-      setDisplayProducts(allProducts);
+    let filtered = allProducts;
+
+    // Filter by category first
+    if (currentCategory) {
+      filtered = filtered.filter(p => p.category === currentCategory);
     }
-    setPage(1); // Reset to first page on search
-  }, [searchQuery, allProducts]);
+
+    // Then filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => {
+        const nameMatch = p.name.toLowerCase().includes(query);
+        const descMatch = query.length >= 3 && p.description.toLowerCase().includes(query);
+        return nameMatch || descMatch;
+      });
+    }
+
+    setDisplayProducts(filtered);
+    setPage(1); // Reset to first page on filter change
+  }, [searchQuery, currentCategory, allProducts]);
 
   const fetchCategories = async () => {
     try {
@@ -53,10 +63,8 @@ export default function Home() {
   const fetchProducts = async () => {
     dispatch(setLoading(true));
     try {
-      const params: any = {};
-      if (currentCategory) params.category = currentCategory;
-
-      const response = await axios.get(`${API_URL}/api/products`, { params });
+      // Fetch ALL products without category filter
+      const response = await axios.get(`${API_URL}/api/products`);
       const products = response.data.products;
 
       setAllProducts(products);
@@ -64,12 +72,15 @@ export default function Home() {
       dispatch(setProducts(products));
     } catch (error: any) {
       dispatch(setError(error.response?.data?.error || 'Failed to fetch products'));
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
-  const handleSearch = (query: string) => {
+  // Use useCallback to create a stable function reference
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
-  };
+  }, []);
 
   const handleCategorySelect = (category: string | null) => {
     dispatch(setCurrentCategory(category));
