@@ -5,6 +5,7 @@ import { updateCartItem, removeCartItem, clearSyncMessages } from '../redux/cart
 import { useState, useEffect } from 'react';
 import ConfirmModal from './ConfirmModal';
 import { showToast } from './Toast';
+import { useDebouncedCartUpdate } from '../hooks/useDebouncedCartUpdate';
 
 export default function Cart() {
   const dispatch = useDispatch<AppDispatch>();
@@ -12,6 +13,18 @@ export default function Cart() {
   const token = useSelector((state: RootState) => state.auth.token);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
   const [hasShownSyncMessages, setHasShownSyncMessages] = useState(false);
+
+  // Debounced cart update hook
+  const {
+    updateQuantity,
+    getDisplayQuantity,
+    isPending
+  } = useDebouncedCartUpdate({
+    delay: 1000, // 1 second debounce
+    onError: (error) => {
+      showToast(typeof error === 'string' ? error : 'Failed to update quantity', 'error');
+    }
+  });
 
   // Show sync messages only on initial load (not on every update)
   useEffect(() => {
@@ -44,15 +57,15 @@ export default function Cart() {
   const handleQuantityChange = async (productId: string, newQuantity: number) => {
     if (newQuantity < 1 || !token) return;
 
-    try {
+    // Use the debounced update hook
+    updateQuantity(productId, newQuantity, async () => {
+      // This API call is debounced and only fires after user stops clicking
       await dispatch(updateCartItem({
         token,
         product_id: productId,
         quantity: newQuantity
       })).unwrap();
-    } catch (error) {
-      showToast(typeof error === 'string' ? error : 'Failed to update quantity', 'error');
-    }
+    });
   };
 
   const handleRemove = (productId: string) => {
@@ -88,106 +101,119 @@ export default function Cart() {
 
   return (
     <div className="space-y-4">
-      {items.map((item) => (
-        <div
-          key={item.product_id}
-          className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${!item.is_available ? 'opacity-60 border-2 border-red-500' :
-              item.has_stock_issue ? 'border-2 border-yellow-500' : ''
-            }`}
-        >
-          <Link to={`/product/${item.product_id}`} className="flex-shrink-0">
-            <img
-              src={item.image_url || 'https://placehold.co/80x80?text=No+Image'}
-              alt={item.product_name}
-              className="w-20 h-20 object-cover rounded"
-            />
-          </Link>
+      {items.map((item) => {
+        // Use optimistic quantity if available, otherwise server quantity
+        const displayQuantity = getDisplayQuantity(item.product_id, item.quantity);
+        const isUpdating = isPending(item.product_id);
 
-          <div className="flex-1">
-            <Link to={`/product/${item.product_id}`}>
-              <h3 className="font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                {item.product_name}
-              </h3>
+        return (
+          <div
+            key={item.product_id}
+            className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${!item.is_available ? 'opacity-60 border-2 border-red-500' :
+              item.has_stock_issue ? 'border-2 border-yellow-500' : ''
+              } ${isUpdating ? 'ring-2 ring-blue-500' : ''}`}
+          >
+            <Link to={`/product/${item.product_id}`} className="flex-shrink-0">
+              <img
+                src={item.image_url || 'https://placehold.co/80x80?text=No+Image'}
+                alt={item.product_name}
+                className="w-20 h-20 object-cover rounded"
+              />
             </Link>
 
-            {item.is_available ? (
+            <div className="flex-1">
+              <Link to={`/product/${item.product_id}`}>
+                <h3 className="font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  {item.product_name}
+                </h3>
+              </Link>
+
+              {item.is_available ? (
+                <>
+                  <p className="text-primary-600 dark:text-primary-400 font-bold">
+                    ${item.price.toFixed(2)}
+                  </p>
+
+                  {/* Stock warning */}
+                  {item.has_stock_issue && (
+                    <p className="text-yellow-600 dark:text-yellow-400 text-sm font-semibold mt-1">
+                      ⚠️ Only {item.stock} left in stock
+                    </p>
+                  )}
+                  {item.stock === 0 && (
+                    <p className="text-red-600 dark:text-red-400 text-sm font-semibold mt-1">
+                      ⚠️ Out of stock
+                    </p>
+                  )}
+                  {!item.has_stock_issue && item.stock > 0 && item.stock < 10 && (
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                      {item.stock} in stock
+                    </p>
+                  )}
+
+                  {/* Syncing indicator */}
+                  {isUpdating && (
+                    <p className="text-xs text-blue-500 mt-1 flex items-center gap-1">
+                      <span className="animate-pulse">●</span> Syncing...
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div>
+                  <p className="text-red-500 text-sm font-semibold">
+                    ⚠️ Product no longer available
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">
+                    This item has been removed from our catalog
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {item.is_available && (
               <>
-                <p className="text-primary-600 dark:text-primary-400 font-bold">
-                  ${item.price.toFixed(2)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleQuantityChange(item.product_id, displayQuantity - 1)}
+                    disabled={displayQuantity <= 1}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="w-12 text-center font-semibold text-gray-900 dark:text-white">
+                    {displayQuantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(item.product_id, displayQuantity + 1)}
+                    disabled={displayQuantity >= item.stock || item.stock === 0}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={item.stock === 0 ? "Out of stock" : displayQuantity >= item.stock ? "Maximum stock reached" : "Increase quantity"}
+                  >
+                    +
+                  </button>
+                </div>
 
-                {/* Stock warning */}
-                {item.has_stock_issue && (
-                  <p className="text-yellow-600 dark:text-yellow-400 text-sm font-semibold mt-1">
-                    ⚠️ Only {item.stock} left in stock
+                <div className="text-right">
+                  <p className="font-bold text-lg text-gray-900 dark:text-white">
+                    ${(item.price * displayQuantity).toFixed(2)}
                   </p>
-                )}
-                {item.stock === 0 && (
-                  <p className="text-red-600 dark:text-red-400 text-sm font-semibold mt-1">
-                    ⚠️ Out of stock
-                  </p>
-                )}
-                {!item.has_stock_issue && item.stock > 0 && item.stock < 10 && (
-                  <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                    {item.stock} in stock
-                  </p>
-                )}
+                </div>
               </>
-            ) : (
-              <div>
-                <p className="text-red-500 text-sm font-semibold">
-                  ⚠️ Product no longer available
-                </p>
-                <p className="text-gray-500 dark:text-gray-400 text-xs">
-                  This item has been removed from our catalog
-                </p>
-              </div>
             )}
+
+            <button
+              onClick={() => handleRemove(item.product_id)}
+              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              title="Remove from cart"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
-
-          {item.is_available && (
-            <>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
-                  disabled={item.quantity <= 1}
-                  className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Decrease quantity"
-                >
-                  -
-                </button>
-                <span className="w-12 text-center font-semibold text-gray-900 dark:text-white">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
-                  disabled={item.quantity >= item.stock || item.stock === 0}
-                  className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={item.stock === 0 ? "Out of stock" : item.quantity >= item.stock ? "Maximum stock reached" : "Increase quantity"}
-                >
-                  +
-                </button>
-              </div>
-
-              <div className="text-right">
-                <p className="font-bold text-lg text-gray-900 dark:text-white">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </p>
-              </div>
-            </>
-          )}
-
-          <button
-            onClick={() => handleRemove(item.product_id)}
-            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-            title="Remove from cart"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Warning banners */}
       {hasUnavailableItems && (
