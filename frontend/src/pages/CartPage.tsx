@@ -1,29 +1,37 @@
 ﻿import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import { clearCart } from '../redux/cartSlice';
+import { RootState, AppDispatch } from '../redux/store';
+import { clearUserCart, fetchCart } from '../redux/cartSlice';
 import Cart from '../components/Cart';
 import EmptyState from '../components/EmptyState';
 import { showToast } from '../components/Toast';
 import axios from 'axios';
 import { useState } from 'react';
+import ConfirmModal from '../components/ConfirmModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { items, total } = useSelector((state: RootState) => state.cart);
   const token = useSelector((state: RootState) => state.auth.token);
   const [loading, setLoading] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const hasUnavailableItems = items.some(item => !item.is_available);
 
   const handleCheckout = async () => {
+    if (!token) return;
+
     setLoading(true);
     try {
-      const orderItems = items.map(item => ({
-        product_id: item.product_id,
-        quantity: item.quantity
-      }));
+      const orderItems = items
+        .filter(item => item.is_available) // Only include available items
+        .map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity
+        }));
 
       await axios.post(
         `${API_URL}/api/orders`,
@@ -31,13 +39,28 @@ export default function CartPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      dispatch(clearCart());
       showToast('Order placed successfully!', 'success');
+
+      // Refresh cart (should be empty now)
+      await dispatch(fetchCart(token));
+
       navigate('/orders');
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Checkout failed', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (!token) return;
+
+    try {
+      await dispatch(clearUserCart(token)).unwrap();
+      showToast('Cart cleared', 'success');
+      setShowClearConfirm(false);
+    } catch (error) {
+      showToast('Failed to clear cart', 'error');
     }
   };
 
@@ -58,9 +81,17 @@ export default function CartPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-        Shopping Cart
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Shopping Cart
+        </h1>
+        <button
+          onClick={() => setShowClearConfirm(true)}
+          className="btn-secondary"
+        >
+          Clear Cart
+        </button>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
@@ -75,7 +106,7 @@ export default function CartPage() {
 
             <div className="space-y-2 mb-6">
               <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                <span>Subtotal ({items.length} items)</span>
+                <span>Subtotal ({items.filter(i => i.is_available).length} items)</span>
                 <span>${total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-700 dark:text-gray-300">
@@ -95,10 +126,10 @@ export default function CartPage() {
 
             <button
               onClick={handleCheckout}
-              disabled={loading}
-              className="w-full btn-primary text-lg py-3 disabled:opacity-50"
+              disabled={loading || hasUnavailableItems}
+              className="w-full btn-primary text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : 'Proceed to Checkout'}
+              {loading ? 'Processing...' : hasUnavailableItems ? 'Remove unavailable items first' : 'Proceed to Checkout'}
             </button>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
@@ -107,6 +138,16 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showClearConfirm}
+        title="Clear Cart"
+        message="Are you sure you want to remove all items from your cart?"
+        confirmText="Clear Cart"
+        cancelText="Cancel"
+        onConfirm={handleClearCart}
+        onCancel={() => setShowClearConfirm(false)}
+      />
     </div>
   );
 }

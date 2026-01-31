@@ -1,6 +1,8 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from './redux/store';
+﻿import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from './redux/store';
+import { fetchCart } from './redux/cartSlice';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
@@ -19,14 +21,24 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  
+
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (!user?.is_admin) return <Navigate to="/" />;
-  
+
   return <>{children}</>;
 }
 
 function App() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
+
+  // Initialize cart when user logs in
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      dispatch(fetchCart(token));
+    }
+  }, [isAuthenticated, token, dispatch]);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -38,7 +50,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            
+
             <Route
               path="/cart"
               element={
@@ -47,7 +59,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             <Route
               path="/orders"
               element={
@@ -56,7 +68,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             <Route
               path="/admin"
               element={
@@ -65,7 +77,7 @@ function App() {
                 </AdminRoute>
               }
             />
-            
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

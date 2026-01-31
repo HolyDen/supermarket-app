@@ -8,18 +8,19 @@ interface SearchBarProps {
 export default function SearchBar({ onSearch, placeholder = 'Search products...' }: SearchBarProps) {
   const [query, setQuery] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(query);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    onSearch(value);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xl">
+    <div className="w-full max-w-xl">
       <div className="relative">
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChange}
           placeholder={placeholder}
           className="input-field pl-12"
         />
@@ -37,6 +38,6 @@ export default function SearchBar({ onSearch, placeholder = 'Search products...'
           />
         </svg>
       </div>
-    </form>
+    </div>
   );
 }

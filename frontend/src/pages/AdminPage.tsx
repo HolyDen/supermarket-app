@@ -20,7 +20,7 @@ interface Product {
 export default function AdminPage() {
   const token = useSelector((state: RootState) => state.auth.token);
   const [products, setProducts] = useState<Product[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -49,17 +49,26 @@ export default function AdminPage() {
     e.preventDefault();
 
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        image_url: formData.image_url,
+        stock: parseInt(formData.stock, 10),
+      };
+
       if (editingProduct) {
         await axios.patch(
           `${API_URL}/api/products/${editingProduct.id}`,
-          formData,
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         showToast('Product updated successfully!', 'success');
       } else {
         await axios.post(
           `${API_URL}/api/products`,
-          formData,
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         showToast('Product created successfully!', 'success');
@@ -74,6 +83,7 @@ export default function AdminPage() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
+    setShowCreateForm(false);
     setFormData({
       name: product.name,
       description: product.description,
@@ -82,7 +92,6 @@ export default function AdminPage() {
       image_url: product.image_url,
       stock: product.stock.toString(),
     });
-    setShowForm(true);
   };
 
   const handleDelete = async () => {
@@ -94,6 +103,7 @@ export default function AdminPage() {
       });
       showToast('Product deleted successfully!', 'success');
       setDeleteProduct(null);
+      resetForm();
       fetchProducts();
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Delete failed', 'error');
@@ -110,8 +120,99 @@ export default function AdminPage() {
       stock: '',
     });
     setEditingProduct(null);
-    setShowForm(false);
+    setShowCreateForm(false);
   };
+
+  const ProductForm = () => (
+    <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4 mb-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Product Name *
+        </label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="input-field"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Category *
+        </label>
+        <input
+          type="text"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          className="input-field"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Price *
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.price}
+          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+          className="input-field"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Stock *
+        </label>
+        <input
+          type="number"
+          value={formData.stock}
+          onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+          className="input-field"
+          required
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Description
+        </label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="input-field"
+          rows={3}
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Image URL
+        </label>
+        <input
+          type="url"
+          value={formData.image_url}
+          onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+          className="input-field"
+          placeholder="https://example.com/image.jpg"
+        />
+      </div>
+
+      <div className="md:col-span-2 flex gap-3">
+        <button type="submit" className="btn-primary">
+          {editingProduct ? 'Update Product' : 'Create Product'}
+        </button>
+        <button type="button" onClick={resetForm} className="btn-secondary">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -120,145 +221,72 @@ export default function AdminPage() {
           Product Management
         </h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowCreateForm(!showCreateForm);
+            setEditingProduct(null);
+            resetForm();
+          }}
           className="btn-primary"
         >
-          {showForm ? 'Cancel' : '+ Add Product'}
+          {showCreateForm ? 'Cancel' : '+ Add Product'}
         </button>
       </div>
 
-      {showForm && (
+      {showCreateForm && (
         <div className="card mb-8">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            {editingProduct ? 'Edit Product' : 'Create New Product'}
+            Create New Product
           </h2>
-          
-          <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Product Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input-field"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category *
-              </label>
-              <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="input-field"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Price *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                className="input-field"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Stock *
-              </label>
-              <input
-                type="number"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                className="input-field"
-                required
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="input-field"
-                rows={3}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Image URL
-              </label>
-              <input
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="input-field"
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
-            <div className="md:col-span-2 flex gap-3">
-              <button type="submit" className="btn-primary">
-                {editingProduct ? 'Update Product' : 'Create Product'}
-              </button>
-              <button type="button" onClick={resetForm} className="btn-secondary">
-                Cancel
-              </button>
-            </div>
-          </form>
+          <ProductForm />
         </div>
       )}
 
       <div className="grid gap-4">
         {products.map((product) => (
-          <div key={product.id} className="card flex items-center gap-6">
-            <img
-              src={product.image_url || 'https://placehold.co/100'}
-              alt={product.name}
-              className="w-24 h-24 object-cover rounded-lg"
-            />
+          <div key={product.id}>
+            <div className="card flex items-center gap-6">
+              <img
+                src={product.image_url || 'https://placehold.co/100x100?text=No+Image'}
+                alt={product.name}
+                className="w-24 h-24 object-cover rounded-lg"
+              />
 
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                {product.name}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {product.category} • ${product.price.toFixed(2)} • Stock: {product.stock}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 line-clamp-1">
-                {product.description}
-              </p>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                  {product.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {product.category} • ${product.price.toFixed(2)} • Stock: {product.stock}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-500 line-clamp-1">
+                  {product.description}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(product)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setDeleteProduct(product)}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(product)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => setDeleteProduct(product)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Delete
-              </button>
-            </div>
+            {editingProduct?.id === product.id && (
+              <div className="card mt-4 ml-8 bg-blue-50 dark:bg-blue-900/20">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Edit Product
+                </h3>
+                <ProductForm />
+              </div>
+            )}
           </div>
         ))}
       </div>

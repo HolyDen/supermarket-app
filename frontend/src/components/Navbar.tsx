@@ -1,18 +1,45 @@
-﻿import { Link } from 'react-router-dom';
+﻿import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { logout } from '../redux/authSlice';
+import { resetCart } from '../redux/cartSlice';
 import ThemeToggle from './ThemeToggle';
+import { showToast } from './Toast';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function Navbar() {
   const dispatch = useDispatch();
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  const cartItemsCount = useSelector((state: RootState) => 
+  const navigate = useNavigate();
+  const { isAuthenticated, user, token } = useSelector((state: RootState) => state.auth);
+  const cartItemsCount = useSelector((state: RootState) =>
     state.cart.items.reduce((sum, item) => sum + item.quantity, 0)
   );
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Call backend logout (ignore errors)
+    try {
+      if (token) {
+        await axios.post(
+          `${API_URL}/api/auth/logout`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 3000
+          }
+        );
+      }
+    } catch (error) {
+      // Silently ignore - logout anyway
+      console.log('Logout API call failed, but logging out locally');
+    }
+
+    // Always logout on frontend
     dispatch(logout());
+    dispatch(resetCart());
+    showToast('Logged out successfully', 'success');
+    navigate('/');
   };
 
   return (

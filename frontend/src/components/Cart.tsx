@@ -1,17 +1,28 @@
 ﻿import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import { updateQuantity, removeFromCart } from '../redux/cartSlice';
+import { Link } from 'react-router-dom';
+import { RootState, AppDispatch } from '../redux/store';
+import { updateCartItem, removeCartItem } from '../redux/cartSlice';
 import { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
+import { showToast } from './Toast';
 
 export default function Cart() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { items, total } = useSelector((state: RootState) => state.cart);
+  const token = useSelector((state: RootState) => state.auth.token);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
-    if (newQuantity > 0) {
-      dispatch(updateQuantity({ product_id: productId, quantity: newQuantity }));
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+    if (newQuantity < 1 || !token) return;
+
+    try {
+      await dispatch(updateCartItem({
+        token,
+        product_id: productId,
+        quantity: newQuantity
+      })).unwrap();
+    } catch (error) {
+      showToast(typeof error === 'string' ? error : 'Failed to update quantity', 'error');
     }
   };
 
@@ -19,9 +30,17 @@ export default function Cart() {
     setItemToRemove(productId);
   };
 
-  const confirmRemove = () => {
-    if (itemToRemove) {
-      dispatch(removeFromCart(itemToRemove));
+  const confirmRemove = async () => {
+    if (itemToRemove && token) {
+      try {
+        await dispatch(removeCartItem({
+          token,
+          product_id: itemToRemove
+        })).unwrap();
+        showToast('Item removed from cart', 'success');
+      } catch (error) {
+        showToast('Failed to remove item', 'error');
+      }
       setItemToRemove(null);
     }
   };
@@ -35,52 +54,71 @@ export default function Cart() {
     );
   }
 
+  const hasUnavailableItems = items.some(item => !item.is_available);
+
   return (
     <div className="space-y-4">
       {items.map((item) => (
         <div
           key={item.product_id}
-          className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
+          className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${!item.is_available ? 'opacity-60 border-2 border-red-500' : ''
+            }`}
         >
-          <img
-            src={item.image_url || 'https://placehold.co/80'}
-            alt={item.product_name}
-            className="w-20 h-20 object-cover rounded"
-          />
+          <Link to={`/product/${item.product_id}`} className="flex-shrink-0">
+            <img
+              src={item.image_url || 'https://placehold.co/80x80?text=No+Image'}
+              alt={item.product_name}
+              className="w-20 h-20 object-cover rounded"
+            />
+          </Link>
 
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {item.product_name}
-            </h3>
-            <p className="text-primary-600 dark:text-primary-400 font-bold">
-              ${item.price.toFixed(2)}
-            </p>
+            <Link to={`/product/${item.product_id}`}>
+              <h3 className="font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                {item.product_name}
+              </h3>
+            </Link>
+
+            {item.is_available ? (
+              <p className="text-primary-600 dark:text-primary-400 font-bold">
+                ${item.price.toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-red-500 text-sm font-semibold">
+                ⚠️ Product no longer available
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
-              className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              -
-            </button>
-            <span className="w-12 text-center font-semibold text-gray-900 dark:text-white">
-              {item.quantity}
-            </span>
-            <button
-              onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
-              disabled={item.quantity >= item.stock}
-              className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
-            >
-              +
-            </button>
-          </div>
+          {item.is_available && (
+            <>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                  className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  -
+                </button>
+                <span className="w-12 text-center font-semibold text-gray-900 dark:text-white">
+                  {item.quantity}
+                </span>
+                <button
+                  onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
+                  disabled={item.quantity >= item.stock}
+                  className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  +
+                </button>
+              </div>
 
-          <div className="text-right">
-            <p className="font-bold text-lg text-gray-900 dark:text-white">
-              ${(item.price * item.quantity).toFixed(2)}
-            </p>
-          </div>
+              <div className="text-right">
+                <p className="font-bold text-lg text-gray-900 dark:text-white">
+                  ${(item.price * item.quantity).toFixed(2)}
+                </p>
+              </div>
+            </>
+          )}
 
           <button
             onClick={() => handleRemove(item.product_id)}
@@ -92,6 +130,14 @@ export default function Cart() {
           </button>
         </div>
       ))}
+
+      {hasUnavailableItems && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-500 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-300 font-semibold">
+            ⚠️ Some items in your cart are no longer available. Please remove them before checkout.
+          </p>
+        </div>
+      )}
 
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
         <div className="flex justify-between items-center text-xl font-bold">

@@ -1,7 +1,7 @@
 ﻿import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../redux/cartSlice';
-import { RootState } from '../redux/store';
+import { addItemToCart } from '../redux/cartSlice';
+import { RootState, AppDispatch } from '../redux/store';
 import { Product } from '../redux/productsSlice';
 import { showToast } from './Toast';
 
@@ -10,13 +10,19 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  // Get cart item at component level (not in handler)
+  const cartItem = useSelector((state: RootState) =>
+    state.cart.items.find(i => i.product_id === product.id)
+  );
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    if (!isAuthenticated) {
+    e.stopPropagation();
+
+    if (!isAuthenticated || !token) {
       showToast('Please login to add items to cart', 'error');
       return;
     }
@@ -26,16 +32,23 @@ export default function ProductCard({ product }: ProductCardProps) {
       return;
     }
 
-    dispatch(addToCart({
-      product_id: product.id,
-      product_name: product.name,
-      price: product.price,
-      quantity: 1,
-      image_url: product.image_url,
-      stock: product.stock,
-    }));
-    
-    showToast(`${product.name} added to cart!`, 'success');
+    // Check if adding would exceed stock
+    if (cartItem && cartItem.quantity >= product.stock) {
+      showToast(`Maximum stock (${product.stock}) already in cart`, 'error');
+      return;
+    }
+
+    try {
+      await dispatch(addItemToCart({
+        token,
+        product_id: product.id,
+        quantity: 1
+      })).unwrap();
+
+      showToast(`${product.name} added to cart!`, 'success');
+    } catch (error: any) {
+      showToast(error || 'Failed to add to cart', 'error');
+    }
   };
 
   return (
@@ -59,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
             {product.name}
           </h3>
-          
+
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {product.description}
           </p>
@@ -68,18 +81,23 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
               ${product.price.toFixed(2)}
             </span>
-            
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock === 0}
-              className={`px-4 py-2 rounded-lg transition-all ${
-                product.stock === 0
+
+            {isAuthenticated ? (
+              <button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+                className={`px-4 py-2 rounded-lg transition-all ${product.stock === 0
                   ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
                   : 'bg-primary-600 hover:bg-primary-700 text-white hover:shadow-lg'
-              }`}
-            >
-              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-            </button>
+                  }`}
+              >
+                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              </button>
+            ) : (
+              <Link to="/login" className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                Login to Buy
+              </Link>
+            )}
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">

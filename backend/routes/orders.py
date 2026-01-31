@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.order import Order, OrderItem
 from models.user import User
 from models.product import Product
+from models.cart import Cart
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -78,6 +79,12 @@ def create_order():
             total=total
         )
         order.save()
+
+        # Clear cart after successful order
+        cart = Cart.objects(user=user).first()
+        if cart:
+            cart.items = []
+            cart.save()
         
         return jsonify({
             'message': 'Order created successfully',

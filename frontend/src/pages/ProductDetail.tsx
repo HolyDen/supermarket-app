@@ -2,8 +2,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { addToCart } from '../redux/cartSlice';
-import { RootState } from '../redux/store';
+import { addItemToCart } from '../redux/cartSlice';
+import { RootState, AppDispatch } from '../redux/store';
 import { Product } from '../redux/productsSlice';
 import { showToast } from '../components/Toast';
 
@@ -12,11 +12,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+
+  // Get cart item
+  const cartItem = useSelector((state: RootState) =>
+    state.cart.items.find(i => i.product_id === id)
+  );
 
   useEffect(() => {
     fetchProduct();
@@ -34,8 +39,8 @@ export default function ProductDetail() {
     }
   };
 
-  const handleAddToCart = () => {
-    if (!isAuthenticated) {
+  const handleAddToCart = async () => {
+    if (!isAuthenticated || !token) {
       showToast('Please login to add items to cart', 'error');
       navigate('/login');
       return;
@@ -43,16 +48,25 @@ export default function ProductDetail() {
 
     if (!product) return;
 
-    dispatch(addToCart({
-      product_id: product.id,
-      product_name: product.name,
-      price: product.price,
-      quantity: quantity,
-      image_url: product.image_url,
-      stock: product.stock,
-    }));
+    // Check if adding would exceed stock
+    const currentInCart = cartItem ? cartItem.quantity : 0;
+    if (currentInCart + quantity > product.stock) {
+      showToast(`Only ${product.stock - currentInCart} more can be added (${currentInCart} already in cart)`, 'error');
+      return;
+    }
 
-    showToast(`${quantity} × ${product.name} added to cart!`, 'success');
+    try {
+      await dispatch(addItemToCart({
+        token,
+        product_id: product.id,
+        quantity: quantity
+      })).unwrap();
+
+      showToast(`${quantity} × ${product.name} added to cart!`, 'success');
+      setQuantity(1); // Reset quantity
+    } catch (error) {
+      showToast(typeof error === 'string' ? error : 'Failed to add to cart', 'error');
+    }
   };
 
   if (loading) {
@@ -80,7 +94,7 @@ export default function ProductDetail() {
       <div className="grid md:grid-cols-2 gap-12">
         <div className="bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
           <img
-            src={product.image_url || 'https://placehold.co/600'}
+            src={product.image_url || 'https://placehold.co/600x600?text=No+Image'}
             alt={product.name}
             className="w-full h-full object-cover"
           />
@@ -102,42 +116,58 @@ export default function ProductDetail() {
             <span className="text-4xl font-bold text-primary-600 dark:text-primary-400">
               ${product.price.toFixed(2)}
             </span>
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className={`text-lg ${product.stock > 0 ? 'text-gray-600 dark:text-gray-400' : 'text-red-600 dark:text-red-400'}`}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <label className="text-gray-700 dark:text-gray-300 font-medium">
-              Quantity:
-            </label>
-            <div className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <>
+              <div className="flex items-center gap-4">
+                <label className="text-gray-700 dark:text-gray-300 font-medium">
+                  Quantity:
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    -
+                  </button>
+                  <span className="w-16 text-center font-semibold text-xl text-gray-900 dark:text-white">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    disabled={quantity >= product.stock}
+                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
               <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+                className="w-full btn-primary text-lg py-4 disabled:opacity-50"
               >
-                -
+                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
-              <span className="w-16 text-center font-semibold text-xl text-gray-900 dark:text-white">
-                {quantity}
-              </span>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-gray-600 dark:text-gray-400">
+                Please login to add this product to your cart
+              </p>
               <button
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                disabled={quantity >= product.stock}
-                className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
+                onClick={() => navigate('/login')}
+                className="w-full btn-primary text-lg py-4"
               >
-                +
+                Login to Buy
               </button>
             </div>
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className="w-full btn-primary text-lg py-4 disabled:opacity-50"
-          >
-            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </button>
+          )}
         </div>
       </div>
     </div>

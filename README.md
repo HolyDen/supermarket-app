@@ -303,9 +303,17 @@ supermarket-app/
 | GET | `/` | Get user's order history | ✅ |
 | POST | `/` | Create order (checkout) | ✅ |
 
-### Cart
+### Cart (`/api/cart`)
 
-The shopping cart is managed **client-side** using Redux. No API endpoints are required for cart operations (add, remove, update quantity, clear).
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/` | Get user's cart with product details | ✅ |
+| POST | `/` | Add item to cart | ✅ |
+| PATCH | `/:product_id` | Update item quantity | ✅ |
+| DELETE | `/:product_id` | Remove item from cart | ✅ |
+| DELETE | `/` | Clear entire cart | ✅ |
+
+**Note:** Cart is stored on the backend per user. Guests must login to use cart functionality. Cart is automatically cleared after successful checkout.
 
 ---
 

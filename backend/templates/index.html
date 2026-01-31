@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 50px auto;
             background: rgba(255, 255, 255, 0.1);
             padding: 40px;
@@ -150,12 +150,36 @@
             color: #2ed573;
             font-weight: bold;
         }
+
+        .auth-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .auth-required {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .auth-optional {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .section-divider {
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            margin: 30px 0;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>🚀 API Documentation</h1>
+        <h1>API Documentation</h1>
 
         <div class="info-section">
             <h3>📡 Available API Endpoints</h3>
@@ -164,50 +188,99 @@
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <span>/api/auth/register</span>
+                <span class="auth-badge auth-optional">Public</span>
             </div>
             <div class="endpoint">
                 <span class="method post">POST</span>
                 <span>/api/auth/login</span>
+                <span class="auth-badge auth-optional">Public</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/auth/logout</span>
+                <span class="auth-badge auth-required">JWT Required</span>
             </div>
             <div class="endpoint">
                 <span class="method get">GET</span>
-                <span>/api/auth/me</span> (requires JWT)
+                <span>/api/auth/me</span>
+                <span class="auth-badge auth-required">JWT Required</span>
             </div>
+
+            <div class="section-divider"></div>
 
             <h4 style="margin-top: 15px; color: #fff;">Products</h4>
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <span>/api/products</span>
+                <span class="auth-badge auth-optional">Public</span>
             </div>
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <span>/api/products/:id</span>
+                <span class="auth-badge auth-optional">Public</span>
             </div>
             <div class="endpoint">
                 <span class="method get">GET</span>
                 <span>/api/products/categories</span>
+                <span class="auth-badge auth-optional">Public</span>
             </div>
             <div class="endpoint">
                 <span class="method post">POST</span>
-                <span>/api/products</span> (Admin only)
+                <span>/api/products</span>
+                <span class="auth-badge auth-required">Admin Only</span>
             </div>
             <div class="endpoint">
                 <span class="method patch">PATCH</span>
-                <span>/api/products/:id</span> (Admin only)
+                <span>/api/products/:id</span>
+                <span class="auth-badge auth-required">Admin Only</span>
             </div>
             <div class="endpoint">
                 <span class="method delete">DELETE</span>
-                <span>/api/products/:id</span> (Admin only)
+                <span>/api/products/:id</span>
+                <span class="auth-badge auth-required">Admin Only</span>
             </div>
+
+            <div class="section-divider"></div>
+
+            <h4 style="margin-top: 15px; color: #fff;">Cart</h4>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/cart</span>
+                <span class="auth-badge auth-required">JWT Required</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/cart</span>
+                <span class="auth-badge auth-required">JWT Required</span>
+            </div>
+            <div class="endpoint">
+                <span class="method patch">PATCH</span>
+                <span>/api/cart/:product_id</span>
+                <span class="auth-badge auth-required">JWT Required</span>
+            </div>
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span>/api/cart/:product_id</span>
+                <span class="auth-badge auth-required">JWT Required</span>
+            </div>
+            <div class="endpoint">
+                <span class="method delete">DELETE</span>
+                <span>/api/cart</span>
+                <span class="auth-badge auth-required">JWT Required</span>
+            </div>
+
+            <div class="section-divider"></div>
 
             <h4 style="margin-top: 15px; color: #fff;">Orders</h4>
             <div class="endpoint">
                 <span class="method get">GET</span>
-                <span>/api/orders</span> (requires JWT)
+                <span>/api/orders</span>
+                <span class="auth-badge auth-required">JWT Required</span>
             </div>
             <div class="endpoint">
                 <span class="method post">POST</span>
-                <span>/api/orders</span> (requires JWT)
+                <span>/api/orders</span>
+                <span class="auth-badge auth-required">JWT Required</span>
             </div>
         </div>
 
