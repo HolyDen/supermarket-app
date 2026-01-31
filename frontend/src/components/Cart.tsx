@@ -11,10 +11,11 @@ export default function Cart() {
   const { items, total, syncMessages } = useSelector((state: RootState) => state.cart);
   const token = useSelector((state: RootState) => state.auth.token);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [hasShownSyncMessages, setHasShownSyncMessages] = useState(false);
 
-  // Show sync messages when cart loads
+  // Show sync messages only on initial load (not on every update)
   useEffect(() => {
-    if (syncMessages && syncMessages.length > 0) {
+    if (syncMessages && syncMessages.length > 0 && !hasShownSyncMessages) {
       syncMessages.forEach(msg => {
         if (msg.type === 'price_changed') {
           showToast(
@@ -34,10 +35,11 @@ export default function Cart() {
         }
       });
 
-      // Clear messages after showing them
+      // Mark as shown and clear messages
+      setHasShownSyncMessages(true);
       dispatch(clearSyncMessages());
     }
-  }, [syncMessages, dispatch]);
+  }, [syncMessages, hasShownSyncMessages, dispatch]);
 
   const handleQuantityChange = async (productId: string, newQuantity: number) => {
     if (newQuantity < 1 || !token) return;
@@ -150,6 +152,7 @@ export default function Cart() {
                   onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
                   disabled={item.quantity <= 1}
                   className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Decrease quantity"
                 >
                   -
                 </button>
@@ -160,6 +163,7 @@ export default function Cart() {
                   onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
                   disabled={item.quantity >= item.stock || item.stock === 0}
                   className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={item.stock === 0 ? "Out of stock" : item.quantity >= item.stock ? "Maximum stock reached" : "Increase quantity"}
                 >
                   +
                 </button>

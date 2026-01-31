@@ -39,6 +39,41 @@ export default function ProductDetail() {
     }
   };
 
+  const handleQuantityChange = (newQty: number) => {
+    if (!product) return;
+
+    // Clamp between 1 and stock
+    const clamped = Math.max(1, Math.min(product.stock, newQty));
+    setQuantity(clamped);
+
+    // Show warning if user tried to exceed stock
+    if (newQty > product.stock) {
+      showToast(`Only ${product.stock} available in stock`, 'error');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Allow empty input (user is typing)
+    if (value === '') {
+      setQuantity(1);
+      return;
+    }
+
+    const num = parseInt(value, 10);
+    if (!isNaN(num)) {
+      handleQuantityChange(num);
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Ensure valid quantity on blur
+    if (quantity < 1) {
+      setQuantity(1);
+    }
+  };
+
   const handleAddToCart = async () => {
     if (!isAuthenticated || !token) {
       showToast('Please login to add items to cart', 'error');
@@ -49,9 +84,8 @@ export default function ProductDetail() {
     if (!product) return;
 
     // Check if adding would exceed stock
-    const currentInCart = cartItem ? cartItem.quantity : 0;
-    if (currentInCart + quantity > product.stock) {
-      showToast(`Only ${product.stock - currentInCart} more can be added (${currentInCart} already in cart)`, 'error');
+    if (inCart + quantity > product.stock) {
+      showToast(`Only ${availableToAdd} more can be added (${inCart} already in cart)`, 'error');
       return;
     }
 
@@ -78,6 +112,10 @@ export default function ProductDetail() {
   }
 
   if (!product) return null;
+
+  const inCart = cartItem?.quantity || 0;
+  const exceedsStock = inCart > product.stock;
+  const availableToAdd = Math.max(0, product.stock - inCart);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -123,36 +161,60 @@ export default function ProductDetail() {
 
           {isAuthenticated ? (
             <>
-              <div className="flex items-center gap-4">
-                <label className="text-gray-700 dark:text-gray-300 font-medium">
+              <div className="space-y-2">
+                <label className="text-gray-700 dark:text-gray-300 font-medium block">
                   Quantity:
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1}
+                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Decrease quantity"
                   >
-                    -
+                    <span className="text-xl font-bold">−</span>
                   </button>
-                  <span className="w-16 text-center font-semibold text-xl text-gray-900 dark:text-white">
-                    {quantity}
+
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.stock}
+                    value={quantity}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    className="w-20 h-10 text-center text-xl font-semibold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+
+                  <button
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= product.stock || product.stock === 0}
+                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title={product.stock === 0 ? "Out of stock" : quantity >= product.stock ? "Maximum stock" : "Increase quantity"}
+                  >
+                    <span className="text-xl font-bold">+</span>
+                  </button>
+
+                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                    Max: {product.stock}
                   </span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    disabled={quantity >= product.stock}
-                    className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
-                  >
-                    +
-                  </button>
                 </div>
+
+                {cartItem && (
+                  <p className={`text-sm ${exceedsStock ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-600 dark:text-gray-400'}`}>
+                    {exceedsStock
+                      ? `⚠️ ${inCart} in cart exceeds stock (${product.stock} available)`
+                      : `${inCart} already in cart • ${availableToAdd} more available`
+                    }
+                  </p>
+                )}
               </div>
 
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="w-full btn-primary text-lg py-4 disabled:opacity-50"
+                className="w-full btn-primary text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                {product.stock === 0 ? 'Out of Stock' : `Add ${quantity} to Cart`}
               </button>
             </>
           ) : (

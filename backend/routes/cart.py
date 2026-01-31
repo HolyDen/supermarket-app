@@ -249,24 +249,29 @@ def update_cart_item(product_id):
         if not cart_item:
             return jsonify({'error': 'Item not in cart'}), 404
         
-        # Validate stock
+        # Get current quantity before validation
+        current_quantity = cart_item.quantity
+        
+        # Validate stock ONLY if INCREASING quantity
         product = Product.objects(id=product_id).first()
         if not product:
             return jsonify({'error': 'Product not found'}), 404
         
-        if product.stock == 0:
-            return jsonify({
-                'error': f'{product.name} is currently out of stock',
-                'stock': 0
-            }), 400
+        if quantity > current_quantity:
+            # User is increasing - validate against stock
+            if product.stock == 0:
+                return jsonify({
+                    'error': f'{product.name} is currently out of stock',
+                    'stock': 0
+                }), 400
+            
+            if quantity > product.stock:
+                return jsonify({
+                    'error': f'Only {product.stock} available in stock',
+                    'stock': product.stock
+                }), 400
         
-        if quantity > product.stock:
-            return jsonify({
-                'error': f'Only {product.stock} available in stock',
-                'stock': product.stock
-            }), 400
-        
-        # Update quantity and snapshot
+        # Update quantity and snapshot (allow decrease without stock check)
         cart_item.quantity = quantity
         cart_item.product_snapshot = {
             'name': product.name,

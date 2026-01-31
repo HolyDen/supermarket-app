@@ -4,13 +4,26 @@ interface ToastMessage {
   id: number;
   message: string;
   type: 'success' | 'error' | 'info';
+  duration?: number;
 }
 
 let toastId = 0;
 const toastListeners: Array<(toast: ToastMessage) => void> = [];
 
-export const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-  const toast: ToastMessage = { id: toastId++, message, type };
+// Toast duration based on type
+const DEFAULT_DURATIONS = {
+  success: 3000,
+  error: 5000,
+  info: 7000, // Longer for sync messages
+};
+
+export const showToast = (
+  message: string,
+  type: 'success' | 'error' | 'info' = 'info',
+  customDuration?: number
+) => {
+  const duration = customDuration || DEFAULT_DURATIONS[type];
+  const toast: ToastMessage = { id: toastId++, message, type, duration };
   toastListeners.forEach(listener => listener(toast));
 };
 
@@ -22,7 +35,7 @@ export default function Toast() {
       setToasts(prev => [...prev, toast]);
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== toast.id));
-      }, 3000);
+      }, toast.duration || DEFAULT_DURATIONS[toast.type]);
     };
 
     toastListeners.push(listener);
@@ -44,11 +57,11 @@ export default function Toast() {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed bottom-4 right-4 z-50 space-y-2 max-w-sm">
       {toasts.map(toast => (
         <div
           key={toast.id}
-          className={`px-6 py-3 rounded-lg shadow-lg animate-slide-down ${getToastStyles(toast.type)}`}
+          className={`px-6 py-3 rounded-lg shadow-lg animate-slide-up ${getToastStyles(toast.type)}`}
         >
           {toast.message}
         </div>
