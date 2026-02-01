@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from mongoengine import connect
 from config import Config
+from seed import run_seed
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -41,6 +42,41 @@ def docs_page():
 @app.route('/api/health')
 def health():
     return jsonify({'status': 'healthy', 'message': 'API is running'}), 200
+
+# One-time seed endpoint for production
+@app.route('/api/seed', methods=['GET', 'POST'])
+def seed_endpoint():
+    """
+    Seeds the database with initial data.
+    Visit: https://your-backend.onrender.com/api/seed
+    """
+    try:
+        from models.user import User
+        from models.product import Product
+        
+        # Check if already seeded
+        if Product.objects.count() > 0:
+            return jsonify({
+                'status': 'already_seeded',
+                'message': 'Database already contains data',
+                'products': Product.objects.count(),
+                'users': User.objects.count()
+            }), 200
+        
+        run_seed()
+                
+        return jsonify({
+            'status': 'success',
+            'message': 'Database seeded successfully!',
+            'products': Product.objects.count(),
+            'users': User.objects.count()
+        }), 201
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
