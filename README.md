@@ -8,7 +8,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-47A248.svg)](https://www.mongodb.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
-[🚀 View Live Demo](https://your-app-name.onrender.com) • [📖 API Documentation](#-api-endpoints) • [🐛 Report Bug](https://github.com/HolyDen/supermarket-app/issues)
+[🚀 View Live Demo](https://supermarket-frontend-jlfs.onrender.com) • [📖 API Documentation](#-api-endpoints) • [🐛 Report Bug](https://github.com/HolyDen/supermarket-app/issues)
 
 ---
 
@@ -551,6 +551,19 @@ npm run build
 - 🔐 Generate strong secrets for production using `python -c "import secrets; print(secrets.token_hex(32))"`
 - 🛡️ Admin routes are protected by JWT authentication
 - ⚠️ This is a learning project - additional security measures needed for production
+
+---
+
+## 🌐 Live Deployment
+
+- **Frontend:** https://supermarket-frontend-jlfs.onrender.com
+- **Backend API:** https://supermarket-backend-qq4w.onrender.com
+- **API Docs:** https://supermarket-backend-qq4w.onrender.com/docs
+- **Database:** MongoDB Atlas (M0 Free Tier)
+
+### Demo Accounts
+- Admin: `admin` / `admin123`
+- User: `user` / `user123`
 
 ---
 
