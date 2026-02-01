@@ -9,7 +9,6 @@ connect(host=Config.MONGODB_URI)
 # Check if already seeded
 if Product.objects.count() > 0:
     print('Database already seeded. Skipping...')
-    exit()
 
 def run_seed():
     print('Seeding full dataset...')
