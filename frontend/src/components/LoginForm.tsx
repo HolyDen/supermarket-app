@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../redux/authSlice';
@@ -13,6 +13,20 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Log demo credentials to console for developers
+  useEffect(() => {
+    console.log('%c🔧 Demo Accounts Available', 'font-size: 16px; color: #0ea5e9; font-weight: bold;');
+    console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #0ea5e9;');
+    console.log('%cAdmin Account:', 'font-size: 13px; color: #10b981; font-weight: bold;');
+    console.log('%c  Username: admin', 'font-size: 12px; color: #6b7280;');
+    console.log('%c  Password: admin123', 'font-size: 12px; color: #6b7280;');
+    console.log('%c', ''); // Empty line
+    console.log('%cUser Account:', 'font-size: 13px; color: #10b981; font-weight: bold;');
+    console.log('%c  Username: user', 'font-size: 12px; color: #6b7280;');
+    console.log('%c  Password: user123', 'font-size: 12px; color: #6b7280;');
+    console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #0ea5e9;');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,10 +89,6 @@ export default function LoginForm() {
       >
         {loading ? 'Logging in...' : 'Login'}
       </button>
-
-      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-        Demo accounts: admin/admin123 or user/user123
-      </p>
     </form>
   );
 }

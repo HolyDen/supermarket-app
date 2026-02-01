@@ -55,7 +55,15 @@ export default function Cart() {
   }, [syncMessages, hasShownSyncMessages, dispatch]);
 
   const handleQuantityChange = async (productId: string, newQuantity: number) => {
-    if (newQuantity < 1 || !token) return;
+    if (!token) return;
+
+    // If user tries to reduce to 0, ask for confirmation to remove
+    if (newQuantity === 0) {
+      setItemToRemove(productId);
+      return;
+    }
+
+    if (newQuantity < 1) return;
 
     // Use the debounced update hook
     updateQuantity(productId, newQuantity, async () => {
@@ -110,7 +118,7 @@ export default function Cart() {
           <div
             key={item.product_id}
             className={`flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${!item.is_available ? 'opacity-60 border-2 border-red-500' :
-              item.has_stock_issue ? 'border-2 border-yellow-500' : ''
+                item.has_stock_issue ? 'border-2 border-yellow-500' : ''
               } ${isUpdating ? 'ring-2 ring-blue-500' : ''}`}
           >
             <Link to={`/product/${item.product_id}`} className="flex-shrink-0">
@@ -175,9 +183,8 @@ export default function Cart() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleQuantityChange(item.product_id, displayQuantity - 1)}
-                    disabled={displayQuantity <= 1}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Decrease quantity"
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                    title={displayQuantity === 1 ? "Remove from cart" : "Decrease quantity"}
                   >
                     -
                   </button>
@@ -244,7 +251,8 @@ export default function Cart() {
       <ConfirmModal
         isOpen={itemToRemove !== null}
         title="Remove Item"
-        message="Are you sure you want to remove this item from your cart?"
+        message={`Are you sure you want to remove ${items.find(i => i.product_id === itemToRemove)?.product_name || 'this item'
+          } from your cart?`}
         confirmText="Remove"
         cancelText="Cancel"
         onConfirm={confirmRemove}

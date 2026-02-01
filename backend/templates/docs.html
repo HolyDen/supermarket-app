@@ -122,7 +122,7 @@
 
         .credentials {
             background: rgba(255, 215, 0, 0.2);
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             margin: 15px 0;
             border-left: 4px solid #ffd700;
@@ -130,6 +130,13 @@
 
         .credentials code {
             background: rgba(0, 0, 0, 0.4);
+        }
+
+        .account-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
         }
 
         ul {
@@ -179,7 +186,8 @@
 
 <body>
     <div class="container">
-        <h1>API Documentation</h1>
+        <h1>🛒 API Documentation</h1>
+        <p style="opacity: 0.9; margin-bottom: 20px;">Supermarket Application - REST API Reference</p>
 
         <div class="info-section">
             <h3>📡 Available API Endpoints</h3>
@@ -285,9 +293,32 @@
         </div>
 
         <div class="credentials">
-            <h3>🔑 Test Credentials</h3>
-            <p><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></p>
-            <p><strong>User:</strong> <code>user</code> / <code>user123</code></p>
+            <h3>🔑 Demo Accounts</h3>
+            <p style="margin-bottom: 15px; opacity: 0.9;">For testing and development purposes:</p>
+
+            <div class="account-box">
+                <p style="margin-bottom: 8px;"><strong>👨‍💼 Admin Account</strong></p>
+                <p>Username: <code>admin</code></p>
+                <p>Password: <code>admin123</code></p>
+                <p style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Full admin privileges, product management
+                </p>
+            </div>
+
+            <div class="account-box">
+                <p style="margin-bottom: 8px;"><strong>👤 Regular User Account</strong></p>
+                <p>Username: <code>user</code></p>
+                <p>Password: <code>user123</code></p>
+                <p style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Browse products, manage cart, place orders
+                </p>
+            </div>
+
+            <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.85;">
+                💡 <strong>Tip:</strong> These credentials are also displayed in the browser console on the login page.
+            </p>
+
+            <p style="margin-top: 10px; font-size: 0.85em; color: #ff6b6b;">
+                ⚠️ <strong>Note:</strong> Development credentials only. Change or remove in production.
+            </p>
         </div>
 
         <div class="info-section">

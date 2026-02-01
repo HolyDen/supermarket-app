@@ -40,6 +40,7 @@
 - **TypeScript** - Type safety
 - **Redux Toolkit** - State management
 - **Axios** - HTTP client
+- **TailwindCSS** - Utility-first styling
 
 ### Database
 - **MongoDB** - NoSQL database
@@ -93,6 +94,30 @@ That's it! The application will be available at:
 - **MongoDB**: localhost:27017
 
 The database will be automatically seeded with sample data on first run.
+
+---
+
+## 🔑 Demo Accounts
+
+For testing and development purposes, demo accounts are available:
+
+### 👨‍💼 Admin Account
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Email**: admin@supermarket.com
+- **Permissions**: Full admin privileges, product management, view all orders
+
+### 👤 Regular User Account
+- **Username**: `user`
+- **Password**: `user123`
+- **Email**: user@supermarket.com
+- **Permissions**: Browse products, manage cart, place orders
+
+> 💡 **Tip**: Open the browser console (F12) on the login page to see these credentials displayed.
+
+These demo accounts are created automatically when you run either the seed_test script (`python seed_test.py`) or the seed script (`python seed.py`).
+
+**⚠️ Security Note:** These are development credentials only. Change or remove them in production environments.
 
 ---
 
@@ -204,12 +229,14 @@ supermarket-app/
 │   │   ├── __init__.py
 │   │   ├── user.py
 │   │   ├── product.py
+│   │   ├── cart.py
 │   │   └── order.py
 │   │
 │   ├── routes/                   # API endpoints
 │   │   ├── __init__.py
 │   │   ├── auth.py               # Authentication routes
 │   │   ├── products.py           # Product CRUD
+│   │   ├── cart.py               # Cart management
 │   │   └── orders.py             # Order management
 │   │
 │   └── templates/                # Backend templates
@@ -232,10 +259,13 @@ supermarket-app/
 │       ├── index.css             # Global styles & Tailwind
 │       ├── vite-env.d.ts         # Vite environment types
 │       │
+│       ├── hooks/                # Custom React hooks
+│       │   └── useDebouncedCartUpdate.ts
+│       │
 │       ├── redux/                # State management
 │       │   ├── store.ts          # Redux store config
 │       │   ├── authSlice.ts      # Auth state
-│       │   ├── cartSlice.ts      # Cart state (localStorage)
+│       │   ├── cartSlice.ts      # Cart state
 │       │   ├── productsSlice.ts  # Products state
 │       │   └── themeSlice.ts     # Dark/Light mode state
 │       │
@@ -334,30 +364,6 @@ supermarket-app/
 
 ---
 
-## 🔑 Default Login Credentials
-
-For testing and development purposes, the following accounts are created when seeding the database:
-
-### 👨‍💼 Admin Account
-```
-Username: admin
-Password: admin123
-Email: admin@supermarket.com
-```
-**Permissions:** Full product CRUD access + all user features
-
-### 👤 Test User Account
-```
-Username: user
-Password: user123
-Email: user@supermarket.com
-```
-**Permissions:** Shopping, cart management, order history
-
-⚠️ **Security Note:** These are development credentials only. Change or remove them in production environments.
-
----
-
 ## 🌱 Database Seeding
 
 Two seeder scripts are provided:
@@ -374,9 +380,9 @@ python backend/seed_test.py
 ```bash
 python backend/seed.py
 ```
-- Complete product catalog with images
+- Complete product catalog with 48 products
+- Product images hosted on GitHub
 - Sample admin and regular users
-- Realistic order history
 - Ready for demo or production
 
 **🔍 Smart Seeding:** The seeder automatically checks if data exists and skips if the database is already populated.
@@ -407,6 +413,8 @@ python backend/seed.py
 - Confirmation modals for destructive actions
 - Image lazy loading
 - Smooth animations and transitions
+- Optimistic UI updates with debouncing
+- GPU-accelerated animations
 
 ### ♿ Accessibility
 - Keyboard navigation support

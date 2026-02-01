@@ -35,7 +35,7 @@ app.register_blueprint(cart_bp, url_prefix='/api/cart')
 # Docs route with Jinja2
 @app.route('/docs')
 def docs_page():
-    return render_template('index.html')
+    return render_template('docs.html')
 
 # Health check
 @app.route('/api/health')
