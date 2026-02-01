@@ -17,12 +17,15 @@ interface Product {
   stock: number;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function AdminPage() {
   const token = useSelector((state: RootState) => state.auth.token);
   const [products, setProducts] = useState<Product[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -38,7 +41,9 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/products`);
+      const response = await axios.get(`${API_URL}/api/products`, {
+        params: { per_page: 1000 } // Get all products for admin management
+      });
       setProducts(response.data.products);
     } catch (error) {
       showToast('Failed to fetch products', 'error');
@@ -75,6 +80,7 @@ export default function AdminPage() {
       }
 
       resetForm();
+      setShowCreateForm(false);
       fetchProducts();
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Operation failed', 'error');
@@ -105,6 +111,12 @@ export default function AdminPage() {
       setDeleteProduct(null);
       resetForm();
       fetchProducts();
+
+      // Adjust current page if needed after deletion
+      const newTotalPages = Math.ceil((products.length - 1) / ITEMS_PER_PAGE);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Delete failed', 'error');
     }
@@ -120,10 +132,20 @@ export default function AdminPage() {
       stock: '',
     });
     setEditingProduct(null);
-    // Removed: setShowCreateForm(false); - This was causing the bug!
   };
 
-  const ProductForm = () => (
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentProducts = products.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderForm = () => (
     <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4 mb-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -224,9 +246,14 @@ export default function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Product Management
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Product Management
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Total: {products.length} products
+          </p>
+        </div>
         <button
           onClick={() => {
             if (!showCreateForm) {
@@ -246,12 +273,12 @@ export default function AdminPage() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Create New Product
           </h2>
-          <ProductForm />
+          {renderForm()}
         </div>
       )}
 
       <div className="grid gap-4">
-        {products.map((product) => (
+        {currentProducts.map((product) => (
           <div key={product.id}>
             <div className="card flex items-center gap-6">
               <img
@@ -293,12 +320,54 @@ export default function AdminPage() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Edit Product
                 </h3>
-                <ProductForm />
+                {renderForm()}
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-between">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {startIndex + 1}-{Math.min(endIndex, products.length)} of {products.length}
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={deleteProduct !== null}
