@@ -4,19 +4,21 @@ import { addItemToCart } from '../redux/cartSlice';
 import { RootState, AppDispatch } from '../redux/store';
 import { Product } from '../redux/productsSlice';
 import { showToast } from './Toast';
+import { memo } from 'react';
 
 interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product }: ProductCardProps) {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
 
-  // Get cart item at component level (not in handler)
-  const cartItem = useSelector((state: RootState) =>
-    state.cart.items.find(i => i.product_id === product.id)
+  // Optimized selector - only re-render if THIS product's cart quantity changes
+  const cartItem = useSelector(
+    (state: RootState) => state.cart.items.find(i => i.product_id === product.id),
+    (prev, next) => prev?.quantity === next?.quantity // Custom equality check
   );
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -60,12 +62,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link to={`/product/${product.id}`}>
-      <div className="card group hover:scale-105 transition-transform duration-200">
+      <div className="card group hover:scale-105 transition-transform duration-200 will-change-transform transform-gpu">
         <div className="relative overflow-hidden rounded-lg mb-4 h-48 bg-gray-100 dark:bg-gray-700">
           <img
             src={product.image_url || 'https://placehold.co/300x300?text=No+Image'}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover"
             loading="lazy"
           />
           {product.stock === 0 && (
@@ -118,3 +120,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     </Link>
   );
 }
+
+// Memoize the component - only re-render when product prop changes
+export default memo(ProductCard, (prevProps, nextProps) => {
+  // Only re-render if product data actually changed
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.product.stock === nextProps.product.stock &&
+    prevProps.product.price === nextProps.product.price
+  );
+});

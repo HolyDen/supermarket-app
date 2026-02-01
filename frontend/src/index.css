@@ -24,4 +24,13 @@
   .card {
     @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-shadow hover:shadow-xl;
   }
+
+  /* GPU acceleration for smooth transforms and scrolling */
+  .transform-gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+  }
 }

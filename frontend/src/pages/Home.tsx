@@ -26,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     fetchCategories();
     fetchProducts();
-  }, []);
+  }, []); // Empty dependency array = run once
 
   // Filter products when search or category changes
   useEffect(() => {
@@ -64,7 +64,10 @@ export default function Home() {
     dispatch(setLoading(true));
     try {
       // Fetch ALL products without category filter
-      const response = await axios.get(`${API_URL}/api/products`);
+      // Set per_page to a large number to get all products
+      const response = await axios.get(`${API_URL}/api/products`, {
+        params: { per_page: 1000 } // Large number to get all products
+      });
       const products = response.data.products;
 
       setAllProducts(products);
