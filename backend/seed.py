@@ -3,14 +3,44 @@ from models.user import User
 from models.product import Product
 from config import Config
 
-# Connect to database
-connect(host=Config.MONGODB_URI)
-
-# Check if already seeded
-if Product.objects.count() > 0:
-    print('Database already seeded. Skipping...')
-
 def run_seed():
+    """
+    Seeds the database with full product catalog and demo users.
+    
+    Automatically checks if database is already seeded and exits early if so.
+    
+    Creates:
+        - 2 demo users (admin, regular user)
+        - 47 products across 10 categories:
+          * Fresh Produce (8 products)
+          * Meat & Seafood (5 products)
+          * Dairy & Eggs (6 products)
+          * Bakery (4 products)
+          * Canned Goods (4 products)
+          * Pasta & Grains (4 products)
+          * Snacks & Sweets (4 products)
+          * Beverages (4 products)
+          * Household Items (4 products)
+          * Frozen Foods (4 products)
+    
+    All products include:
+        - GitHub-hosted images
+        - Realistic descriptions and prices
+        - Initial stock quantities
+    
+    Demo credentials:
+        - Admin: username='admin', password='admin123'
+        - User: username='user', password='user123'
+    
+    Returns:
+        None. Prints progress to console.
+    """
+    
+    # Check if already seeded
+    if Product.objects.count() > 0:
+        print('Database already seeded. Skipping...')
+        return
+    
     print('Seeding full dataset...')
 
     # Create admin user
@@ -118,4 +148,8 @@ def run_seed():
 
 
 if __name__ == "__main__":
+
+    # Connect to database
+    connect(host=Config.MONGODB_URI)
+
     run_seed()
