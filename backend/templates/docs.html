@@ -290,6 +290,25 @@
                 <span>/api/orders</span>
                 <span class="auth-badge auth-required">JWT Required</span>
             </div>
+
+            <div class="section-divider"></div>
+
+            <h4 style="margin-top: 15px; color: #fff;">Database Utilities</h4>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/api/seed</span>
+                <span class="auth-badge auth-optional">Token (Prod)</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span>/api/seed</span>
+                <span class="auth-badge auth-optional">Token (Prod)</span>
+            </div>
+            <p style="font-size: 0.85em; margin: 10px 0 0 15px; opacity: 0.8;">
+                Seeds database with demo data. Query params: <code>mode</code> (test/full/auto), <code>token</code>
+                (production only).
+                <br>Development: No token required. Production: Requires SEED_TOKEN environment variable.
+            </p>
         </div>
 
         <div class="credentials">

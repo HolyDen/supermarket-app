@@ -366,26 +366,57 @@ supermarket-app/
 
 ## 🌱 Database Seeding
 
-Two seeder scripts are provided:
+### Seeding Methods
 
-### Test Seeder (Quick Testing)
+| Method | Products | Use Case | Command |
+|--------|----------|----------|---------|
+| Script (Test) | 5 | Development, quick testing | `python backend/seed_test.py` |
+| Script (Full) | 47 | Production, realistic data | `python backend/seed.py` |
+| API Endpoint | 5 or 47 | Docker, cloud deployment | See below |
+
+### Quick Start (Standalone Scripts)
+
+**Test Data (5 products):**
 ```bash
 python backend/seed_test.py
 ```
-- Minimal dataset
-- Fast execution
-- Perfect for development and testing
+- Minimal dataset with placeholder images
+- Fast execution (~2 seconds)
+- Perfect for rapid development
 
-### Full Seeder (Production-Ready)
+**Full Production Data (47 products):**
 ```bash
 python backend/seed.py
 ```
-- Complete product catalog with 48 products
-- Product images hosted on GitHub
-- Sample admin and regular users
-- Ready for demo or production
+- Complete catalog across 10 categories
+- GitHub-hosted product images
+- Realistic prices and descriptions
 
-**🔍 Smart Seeding:** The seeder automatically checks if data exists and skips if the database is already populated.
+### API Endpoint (For Deployment)
+
+The `/api/seed` endpoint provides flexible seeding for different environments:
+
+```bash
+# Development (no token required)
+POST http://localhost:5000/api/seed?mode=test   # 5 products
+POST http://localhost:5000/api/seed?mode=full   # 47 products
+
+# Production (requires SEED_TOKEN)
+POST https://your-backend.onrender.com/api/seed?token=YOUR_SECRET
+```
+
+**Mode Options:**
+- `auto` (default) - Auto-detects: development → test data, production → full data
+- `test` - Forces 5 test products
+- `full` - Forces 47 products
+
+**Production Setup:**
+1. Generate token: `python -c "import secrets; print(secrets.token_hex(16))"`
+2. Set `SEED_TOKEN` in environment variables
+3. Call endpoint once: `/api/seed?token=YOUR_SECRET`
+4. Remove `SEED_TOKEN` to disable endpoint
+
+**🔍 Smart Seeding:** All methods automatically check if data exists and skip if database is already populated.
 
 ---
 
